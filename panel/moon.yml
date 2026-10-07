@@ -1,0 +1,42 @@
+$schema: '../.moon/cache/schemas/project.json'
+
+language: 'typescript'
+stack: 'frontend'
+layer: 'application'
+
+fileGroups:
+  sources:
+    - 'app/**/*'
+    - 'components/**/*'
+    - 'lib/**/*'
+    - 'public/**/*'
+    - '*.ts'
+    - '*.tsx'
+    - '*.mjs'
+    - '*.json'
+
+tasks:
+  dev:
+    command: 'bun next dev'
+    preset: 'server'
+
+  build:
+    command: 'bun next build'
+    inputs:
+      - '@group(sources)'
+    outputs:
+      - '.next'
+
+  start:
+    command: 'bun next start'
+    preset: 'server'
+
+  lint:
+    command: 'eslint'
+    inputs:
+      - '@group(sources)'
+
+  typecheck:
+    command: 'tsc --noEmit'
+    inputs:
+      - '@group(sources)'

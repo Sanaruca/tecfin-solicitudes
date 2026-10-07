@@ -1,0 +1,66 @@
+// Schema de la aplicacion de "Solicitudes de Clientes"
+// Base de datos: SQLite
+//
+// NOTA: SQLite no soporta tipos ENUM en Prisma, por lo que los campos
+// `rol` y `estado` se almacenan como String con valores fijos validados
+// en la capa de aplicacion.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ---------------------------------------------------------------------------
+// Usuarios y acceso (Login)
+// ---------------------------------------------------------------------------
+
+model Usuario {
+  id        Int      @id @default(autoincrement())
+  nombre    String
+  email     String   @unique
+  password  String   // hash de la contraseña (nunca en texto plano)
+  // Valores permitidos: "ADMINISTRADOR" | "OPERADOR"
+  rol       String   @default("OPERADOR")
+  activo    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Solicitudes creadas/registradas por este usuario
+  solicitudes Solicitud[]
+
+  @@index([rol])
+}
+
+// ---------------------------------------------------------------------------
+// Solicitudes de clientes
+// ---------------------------------------------------------------------------
+
+model Solicitud {
+  id            Int      @id @default(autoincrement())
+  nombreCliente String
+  telefono      String
+  descripcion   String
+  fecha         DateTime @default(now())
+  // Valores permitidos:
+  //   "PENDIENTE"    -> Pendiente
+  //   "EN_PROCESO"   -> En proceso
+  //   "COMPLETADA"   -> Completada
+  //   "CANCELADA"    -> Cancelada
+  estado        String   @default("PENDIENTE")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Usuario (Administrador u Operador) que registro la solicitud.
+  // SetNull: si se elimina el usuario, la solicitud se conserva.
+  creadoPorId Int?
+  creadoPor   Usuario? @relation(fields: [creadoPorId], references: [id], onDelete: SetNull)
+
+  // Buscar por nombre de cliente y filtrar por estado
+  @@index([nombreCliente])
+  @@index([estado])
+}

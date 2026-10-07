@@ -1,0 +1,21 @@
+{
+  "name": "solicitudes",
+  "private": true,
+  "scripts": {
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "db:setup": "prisma db push && prisma db seed"
+  },
+  "dependencies": {
+    "@libsql/client": "^0.18.0",
+    "@prisma/adapter-libsql": "^7.10.0",
+    "@prisma/client": "^7",
+    "bcryptjs": "^3.0.3"
+  },
+  "devDependencies": {
+    "@moonrepo/cli": "^2.6.0",
+    "@types/node": "^26.6.4",
+    "prisma": "^7",
+    "typescript": "^7.0.2"
+  }
+}

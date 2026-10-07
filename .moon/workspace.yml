@@ -1,0 +1,11 @@
+$schema: './cache/schemas/workspace.json'
+
+# Proyectos del workspace (mapeo explícito id -> directorio)
+projects:
+  sources:
+    api: 'api'
+    panel: 'panel'
+
+hasher:
+  # El repo raíz no es git, así que hash por glob en vez de por VCS
+  walkStrategy: 'glob'

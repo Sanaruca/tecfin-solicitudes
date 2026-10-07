@@ -1,0 +1,31 @@
+{
+  "name": "Fullstack Moonrepo + Bun + SQLite (Dockerfile)",
+  
+  // Le indicamos que construya a partir de nuestro Dockerfile local
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Asegurar que el PATH persista correctamente en la sesión remota
+  "remoteEnv": {
+    "PATH": "/home/node/.bun/bin:/home/node/.moon/bin:${containerEnv:PATH}"
+  },
+
+  // Extensiones recomendadas para VS Code / Cursor
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "mtxr.sqltools",
+        "mtxr.sqltools-driver-sqlite",
+        "moonrepo.moon-console"
+      ]
+    }
+  },
+
+  "forwardPorts": [3000, 4000, 5173],
+
+  // Forzar el uso del usuario no-root
+  "remoteUser": "node"
+}
