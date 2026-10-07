@@ -1,15 +1,11 @@
 /**
  * Configuración de la capa de datos del panel.
  *
- * Mientras la API Go no está completa se usan datos mock (`USE_MOCK = true`).
- * Al integrar la API solo hay que cambiar el flag y completar los `TODO(integración)`
- * de cada archivo en `lib/api/*`.
+ * `USE_MOCK = false`: la UI consume la API Go (ver `lib/api/client.ts`).
+ * Si querés volver a los datos mock (sin backend), poné el flag en `true`:
+ * las vistas no cambian, solo se cambia la fuente de datos.
  */
-export const USE_MOCK = true;
+export const USE_MOCK = false;
 
+/** URL base de la API Go (variable `NEXT_PUBLIC_API_URL`). */
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8080";
-
-/** Se usa hasta que la ruta correspondiente exista en la API Go. */
-export function apiNoDisponible(recurso: string): never {
-  throw new Error(`La API Go aún no está disponible para ${recurso}.`);
-}

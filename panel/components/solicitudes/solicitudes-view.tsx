@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import {
   PencilIcon,
   PlusIcon,
@@ -23,6 +24,7 @@ import { deleteSolicitud, listSolicitudes } from "@/lib/api/solicitudes";
 import type { EstadoSolicitud, Solicitud } from "@/lib/types";
 
 export function SolicitudesView() {
+  const pathname = usePathname();
   const [items, setItems] = useState<Solicitud[] | null>(null);
   const [loading, setLoading] = useState(true);
   const [nombre, setNombre] = useState("");
@@ -59,7 +61,9 @@ export function SolicitudesView() {
       cancelled = true;
       window.clearTimeout(timer);
     };
-  }, [nombre, estado]);
+    // `pathname`: al volver de editar/crear, el listado se refresca (Next
+    // mantiene la vista anterior montada en el DOM, oculta, sin re-consultar).
+  }, [pathname, nombre, estado]);
 
   async function confirmarEliminacion() {
     if (!aEliminar) return;

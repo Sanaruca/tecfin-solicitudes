@@ -124,17 +124,6 @@ export function LoginView() {
             </button>
           </form>
         </div>
-
-        {/* TODO(integración): eliminar este bloque cuando el login use la API real. */}
-        <div className="mt-4 rounded-xl border border-zinc-200 bg-white p-4 text-xs leading-5 text-zinc-600">
-          <p className="font-semibold text-zinc-900">Accesos de prueba</p>
-          <p className="mt-1">
-            <span className="font-medium">Administrador:</span> admin@empresa.com · admin123
-          </p>
-          <p>
-            <span className="font-medium">Operador:</span> operador@empresa.com · operador123
-          </p>
-        </div>
       </div>
     </div>
   );

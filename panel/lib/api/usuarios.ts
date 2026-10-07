@@ -1,26 +1,31 @@
 /**
- * Acceso a usuarios (solo Administrador).
+ * Acceso a usuarios (solo Administrador; la API devuelve 403 al resto).
  *
- * TODO(integración API): al habilitar `USE_MOCK = false`, reemplazar por:
+ * Con la API Go:
  *   GET    /usuarios
  *   POST   /usuarios
- *   DELETE /usuarios/:id
+ *   DELETE /usuarios/:id   (al eliminar un usuario, sus solicitudes quedan
+ *                           sin dueño: la API hace `creadoPorId = NULL`)
  */
 import { mockDB } from "@/lib/mock/store";
-import { apiNoDisponible, USE_MOCK } from "@/lib/api/config";
+import { USE_MOCK } from "@/lib/api/config";
+import { request } from "@/lib/api/client";
 import type { Usuario, UsuarioCreateInput } from "@/lib/types";
 
 export async function listUsuarios(): Promise<Usuario[]> {
   if (USE_MOCK) return mockDB.usuarios.list();
-  return apiNoDisponible("GET /usuarios");
+  return request<Usuario[]>("/usuarios");
 }
 
 export async function createUsuario(input: UsuarioCreateInput): Promise<Usuario> {
   if (USE_MOCK) return mockDB.usuarios.create(input);
-  return apiNoDisponible("POST /usuarios");
+  return request<Usuario>("/usuarios", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
 export async function deleteUsuario(id: number): Promise<void> {
   if (USE_MOCK) return mockDB.usuarios.remove(id);
-  return apiNoDisponible(`DELETE /usuarios/${id}`);
+  await request<Usuario>(`/usuarios/${id}`, { method: "DELETE" });
 }

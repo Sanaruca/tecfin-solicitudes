@@ -1,46 +1,51 @@
 /**
  * Autenticación y sesión.
  *
- * TODO(integración API): al habilitar `USE_MOCK = false`:
- *   POST /auth/login   -> { token, user }  (guardar token en cookie HttpOnly)
- *   POST /auth/logout
- *   GET  /auth/me      -> usuario de la sesión actual
+ * Con la API Go:
+ *   POST /auth/login   -> { token, user }
+ *   POST /auth/logout  -> 204 (la sesión es stateless: el cliente descarta el token)
+ *   GET  /auth/me      -> usuario de la sesión actual (lo resuelve el middleware
+ *                         de la API en cada petición)
+ *
+ * El token se guarda en el navegador y viaja en `Authorization: Bearer`
+ * (`lib/api/client.ts`): si la API responde 401, la sesión se cierra y
+ * <AuthGuard> vuelve al login.
  */
 import { mockDB } from "@/lib/mock/store";
-import { apiNoDisponible, USE_MOCK } from "@/lib/api/config";
-import type { LoginInput, LoginResponse, SessionUser } from "@/lib/types";
+import { USE_MOCK } from "@/lib/api/config";
+import { cerrarSesion, getSession, guardarSesion, request } from "@/lib/api/client";
+import type { LoginInput, LoginResponse } from "@/lib/types";
+
+export {
+  getSession,
+  getSessionSnapshot,
+  getServerSessionSnapshot,
+  subscribeToSession,
+} from "@/lib/api/client";
 
 export async function login(input: LoginInput): Promise<LoginResponse> {
   if (USE_MOCK) return mockDB.auth.login(input);
-  return apiNoDisponible("POST /auth/login");
+
+  // 401 acá significa "credenciales incorrectas": no hay que tocar la sesión.
+  const res = await request<LoginResponse>("/auth/login", {
+    method: "POST",
+    body: JSON.stringify(input),
+    noCerrarSesion: true,
+  });
+  guardarSesion(res.token, res.user);
+  return res;
 }
 
 export async function logout(): Promise<void> {
   if (USE_MOCK) return mockDB.auth.logout();
-  return apiNoDisponible("POST /auth/logout");
-}
 
-/** Sesión actual (síncrona, solo en el navegador). */
-export function getSession(): SessionUser | null {
-  if (USE_MOCK) return mockDB.auth.getSession();
-  return null;
-}
-
-/** Snapshot estable de la sesión (para `useSyncExternalStore`). */
-export function getSessionSnapshot(): SessionUser | null {
-  if (USE_MOCK) return mockDB.auth.getSessionSnapshot();
-  return null;
-}
-
-/** Server snapshot: en el servidor nunca hay sesión en el cliente. */
-export function getServerSessionSnapshot(): SessionUser | null {
-  return null;
-}
-
-/** Suscripción a cambios de sesión (para `useSyncExternalStore`). */
-export function subscribeToSession(callback: () => void): () => void {
-  if (USE_MOCK) return mockDB.auth.subscribe(callback);
-  return () => undefined;
+  try {
+    await request<void>("/auth/logout", { method: "POST", noCerrarSesion: true });
+  } catch {
+    // La sesión es stateless: aunque falle la llamada, el token se descarta igual.
+  } finally {
+    cerrarSesion();
+  }
 }
 
 export function isAuthenticated(): boolean {

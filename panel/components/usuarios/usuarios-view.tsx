@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { PlusIcon, ShieldIcon, TrashIcon } from "@/components/icons";
 import { useSession } from "@/components/auth/session-context";
 import { Alert } from "@/components/ui/alert";
@@ -16,6 +17,7 @@ import type { Usuario } from "@/lib/types";
 
 export function UsuariosView() {
   const session = useSession();
+  const pathname = usePathname();
   const esAdmin = session.rol === "ADMINISTRADOR";
 
   const [items, setItems] = useState<Usuario[] | null>(null);
@@ -40,7 +42,9 @@ export function UsuariosView() {
     return () => {
       cancelled = true;
     };
-  }, [esAdmin]);
+    // `pathname`: al volver de crear un usuario, la lista se refresca (Next
+    // mantiene la vista anterior montada en el DOM, oculta, sin re-consultar).
+  }, [esAdmin, pathname]);
 
   async function confirmarEliminacion() {
     if (!aEliminar) return;

@@ -1,16 +1,16 @@
 /**
  * Acceso a solicitudes.
  *
- * TODO(integración API): al habilitar `USE_MOCK = false`, reemplazar las
- * llamadas mock por `fetch` contra la API Go:
+ * Con la API Go:
  *   GET    /solicitudes?nombre=&estado=&pagina=&porPagina=
- *   GET    /solicitudes/:id
+ *   GET    /solicitudes/:id   (404 -> null)
  *   POST   /solicitudes
  *   PUT    /solicitudes/:id
  *   DELETE /solicitudes/:id
  */
 import { mockDB } from "@/lib/mock/store";
-import { apiNoDisponible, USE_MOCK } from "@/lib/api/config";
+import { USE_MOCK } from "@/lib/api/config";
+import { ApiError, request } from "@/lib/api/client";
 import type {
   Solicitud,
   SolicitudCreateInput,
@@ -18,19 +18,39 @@ import type {
   SolicitudUpdateInput,
 } from "@/lib/types";
 
+/** Traduce los filtros de la UI a los query params de la API. */
+function queryString(filters: SolicitudFilters): string {
+  const params = new URLSearchParams();
+  if (filters.nombre) params.set("nombre", filters.nombre);
+  if (filters.estado) params.set("estado", filters.estado);
+  if (filters.pagina) params.set("pagina", String(filters.pagina));
+  if (filters.porPagina) params.set("porPagina", String(filters.porPagina));
+  const query = params.toString();
+  return query ? `?${query}` : "";
+}
+
 export async function listSolicitudes(filters: SolicitudFilters = {}): Promise<Solicitud[]> {
   if (USE_MOCK) return mockDB.solicitudes.list(filters);
-  return apiNoDisponible("GET /solicitudes");
+  return request<Solicitud[]>(`/solicitudes${queryString(filters)}`);
 }
 
 export async function getSolicitud(id: number): Promise<Solicitud | null> {
   if (USE_MOCK) return mockDB.solicitudes.get(id);
-  return apiNoDisponible(`GET /solicitudes/${id}`);
+  try {
+    return await request<Solicitud>(`/solicitudes/${id}`);
+  } catch (err) {
+    // La API responde 404 si no existe: la vista muestra "no encontrada".
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
 }
 
 export async function createSolicitud(input: SolicitudCreateInput): Promise<Solicitud> {
   if (USE_MOCK) return mockDB.solicitudes.create(input);
-  return apiNoDisponible("POST /solicitudes");
+  return request<Solicitud>("/solicitudes", {
+    method: "POST",
+    body: JSON.stringify(input),
+  });
 }
 
 export async function updateSolicitud(
@@ -38,10 +58,13 @@ export async function updateSolicitud(
   input: SolicitudUpdateInput,
 ): Promise<Solicitud> {
   if (USE_MOCK) return mockDB.solicitudes.update(id, input);
-  return apiNoDisponible(`PUT /solicitudes/${id}`);
+  return request<Solicitud>(`/solicitudes/${id}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  });
 }
 
 export async function deleteSolicitud(id: number): Promise<void> {
   if (USE_MOCK) return mockDB.solicitudes.remove(id);
-  return apiNoDisponible(`DELETE /solicitudes/${id}`);
+  await request<Solicitud>(`/solicitudes/${id}`, { method: "DELETE" });
 }
