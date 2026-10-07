@@ -64,23 +64,22 @@ Sigue estos pasos para ejecutar el proyecto de manera local.
 Asegúrate de tener instalado en tu sistema:
 - [Node.js](https://nodejs.org/) (v18+ recomendado)
 - [Git](https://git-scm.com/)
-- Instancia de Base de Datos (PostgreSQL / MySQL)
+- Instancia de Base de Datos (SQLite3)
 
 ### Instala y Ejecuta
 
 1. **Clona el repositorio:**
-   ```bash
-   git clone [https://github.com/tu-usuario/gestion-solicitudes.git](https://github.com/tu-usuario/gestion-solicitudes.git)
-   cd gestion-solicitudes
-
+```bash
+   git clone https://github.com/Sanaruca/tecfin-solicitudes.git
+   cd tecfin-solicitudes
 ```
 
 2. **Configura las variables de entorno:**
-Crea un archivo `.env` en la raíz (o dentro de las carpetas backend/frontend según corresponda) guiándote con el archivo `.env.example`:
+Crea un archivo `.env` en la raíz (o dentro de las carpetas api/panel según corresponda) guiándote con el archivo `.env.example`:
+
 ```env
-PORT=5000
-DATABASE_URL=postgresql://usuario:password@localhost:5432/gestion_db
-JWT_SECRET=tu_clave_secreta_super_segura
+DATABASE_URL="file:/workspaces/solicitudes/dev.db"
+JWT_SECRET="your_jwt_secret_here"
 
 ```
 
@@ -88,21 +87,16 @@ JWT_SECRET=tu_clave_secreta_super_segura
 3. **Instala dependencias y ejecuta el proyecto:**
 *Para el Backend:*
 ```bash
-cd backend
-npm install
-npm run dev
-
+bun moon run api:dev
 ```
 
 
 *Para el Frontend:*
 ```bash
-cd frontend
-npm install
-npm run dev
+bun install
+bun moon run panel:dev
 
 ```
-
 
 4. Abre tu navegador e ingresa a `http://localhost:3000`.
 
@@ -123,8 +117,8 @@ Para probar los distintos roles del sistema en el entorno de desarrollo o demo:
 
 La aplicación se encuentra desplegada y lista para ser probada en producción:
 
-* 🔗 **Aplicación Web:** [https://tu-proyecto.vercel.app](https://tu-proyecto.vercel.app)
-* 🔗 **API / Backend:** [https://tu-api.onrender.com](https://www.google.com/search?q=https://tu-api.onrender.com)
+* 🔗 **Aplicación Web:** [https://tecfin-solicitudes.vercel.app](https://tecfin-solicitudes.vercel.app)
+* 🔗 **API / Backend:** [https://api-tecfin-solicitudes.onrender.com](https://www.google.com/search?q=https://api-tecfin-solicitudes.onrender.com)
 
 ---
 
