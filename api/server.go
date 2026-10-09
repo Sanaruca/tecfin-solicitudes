@@ -58,7 +58,22 @@ func main() {
 		AppName: "Solicitudes API",
 	})
 
-	app.Use(cors.New())
+	// CORS: permitir orígenes (variable ALLOWED_ORIGINS, separados por ';') o todos en desarrollo
+	allowedOrigins := os.Getenv("ALLOWED_ORIGINS")
+	if allowedOrigins == "" {
+		app.Use(cors.New())
+	} else {
+		origins := strings.Split(allowedOrigins, ";")
+		for i := range origins {
+			origins[i] = strings.TrimSpace(origins[i])
+		}
+		app.Use(cors.New(cors.Config{
+			AllowOrigins:     strings.Join(origins, ","),
+			AllowMethods:     "GET,POST,PUT,DELETE,OPTIONS",
+			AllowHeaders:     "Origin,Content-Type,Accept,Authorization",
+			AllowCredentials: true,
+		}))
+	}
 	app.Use(logger.New())
 
 	// Autenticación: valida el Bearer token y carga el usuario autenticado
