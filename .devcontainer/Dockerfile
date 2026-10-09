@@ -16,6 +16,9 @@ RUN curl -fsSL https://bun.sh/install | bash
 # Instalar Moonrepo globalmente para el usuario node
 RUN curl -fsSL https://moonrepo.dev/install.sh | bash
 
+# Instalar Go globalmente para el usuario node
+RUN curl -sL https://git.io/go-installer | bash
+
 # Añadir Bun y Moon al PATH del usuario
 ENV PATH="/home/node/.bun/bin:/home/node/.moon/bin:${PATH}"
 
