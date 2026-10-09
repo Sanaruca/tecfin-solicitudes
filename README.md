@@ -22,7 +22,7 @@ El **Sistema de Gestión de Solicitudes** permite a las empresas centralizar, or
 ### ✨ Características Principales
 
 - 🔒 **Autenticación Segura & Control de Acceso (RBAC):**
-  - **Administrador:** Control total sobre solicitudes y gestión de usuarios (creación de cuentas).
+  - **Administrador:** Control total sobre solicitudes y gestión de usuarios (creación/eliminación de cuentas).
   - **Operador:** Gestión operativa de solicitudes (creación, edición y cambio de estado).
 - 📝 **Gestión Completa de Solicitudes (CRUD):**
   - Registro con nombre de cliente, teléfono, descripción, fecha y estado.
@@ -32,7 +32,7 @@ El **Sistema de Gestión de Solicitudes** permite a las empresas centralizar, or
   - Filtrado rápido por estado.
 - 📱 **Interfaz Responsive & Minimalista:**
   - Experiencia de usuario fluida y adaptable a dispositivos móviles, tablets y escritorio.
-- ⚡ **API RESTful Persistente:** Conexión directa a base de datos relacional.
+- ⚡ **API RESTful Persistente:** Conexión directa a base de datos relacional (SQLite) con Fiber + GORM.
 
 ---
 
@@ -45,11 +45,12 @@ El **Sistema de Gestión de Solicitudes** permite a las empresas centralizar, or
 
 | Capa | Tecnología | Descripción |
 | :--- | :--- | :--- |
-| **Frontend** | React / Next.js | Interfaz de usuario declarativa y responsive |
-| **Styling** | Tailwind CSS / CSS Modules | Diseño minimalista y utilitario |
-| **Backend** | Go | API RESTful sólida y eficiente |
-| **Base de Datos** | SQLite | Almacenamiento relacional de datos |
-| **Autenticación**| JWT (JSON Web Tokens) | Sesiones seguras basadas en tokens |
+| **Frontend** | Next.js 16 (App Router) + React 19 | Interfaz de usuario declarativa y responsive |
+| **Styling** | Tailwind CSS 4 | Diseño minimalista y utilitario |
+| **Backend** | Go 1.23 + Fiber + GORM | API RESTful sólida y eficiente |
+| **Base de Datos** | SQLite (Prisma ORM) | Almacenamiento relacional de datos |
+| **Autenticación** | JWT (JSON Web Tokens) | Sesiones seguras basadas en tokens |
+| **Tooling** | Bun | Gestor de paquetes y runtime |
 
 </details>
 
@@ -62,63 +63,103 @@ Sigue estos pasos para ejecutar el proyecto de manera local.
 ### Prerrequisitos
 
 Asegúrate de tener instalado en tu sistema:
-- [Node.js](https://nodejs.org/) (v18+ recomendado)
+- [Go](https://golang.org/dl/) (1.23+)
+- [Bun](https://bun.sh/) (1.4+)
 - [Git](https://git-scm.com/)
-- Instancia de Base de Datos (SQLite3)
 
 ### Instala y Ejecuta
 
 1. **Clona el repositorio:**
 ```bash
-   git clone https://github.com/Sanaruca/tecfin-solicitudes.git
-   cd tecfin-solicitudes
+git clone https://github.com/Sanaruca/tecfin-solicitudes.git
+cd tecfin-solicitudes
 ```
 
 2. **Configura las variables de entorno:**
-Crea un archivo `.env` en la raíz (o dentro de las carpetas api/panel según corresponda) guiándote con el archivo `.env.example`:
-
-```env
-DATABASE_URL="file:/workspaces/solicitudes/dev.db"
-JWT_SECRET="your_jwt_secret_here"
-
-```
-
-
-3. **Instala dependencias y ejecuta el proyecto:**
-*Para el Backend:*
+Copia el archivo de ejemplo y ajusta si es necesario:
 ```bash
-bun moon run api:dev
+cp .env.example .env
 ```
+> **Nota:** `DATABASE_URL="file:./dev.db"` es relativo a la raíz del repositorio.
 
-
-*Para el Frontend:*
+3. **Configura la base de datos (crea tablas y carga datos de desarrollo):**
 ```bash
-bun install
-bun moon run panel:dev
-
+bun run db:setup
 ```
+> Este comando ejecuta `prisma db push` + `prisma db seed` (idempotente).
 
-4. Abre tu navegador e ingresa a `http://localhost:3000`.
+4. **Ejecuta la API (Go):**
+```bash
+cd api && go run server.go
+```
+> La API corre en `http://localhost:8080`
+
+5. **Ejecuta el Panel (Next.js) en otra terminal:**
+```bash
+cd panel && bun dev
+```
+> El frontend corre en `http://localhost:3000`
+
+6. Abre tu navegador e ingresa a `http://localhost:3000`.
 
 ---
 
 ## 🔐 Credenciales Demo
 
-Para probar los distintos roles del sistema en el entorno de desarrollo o demo:
+Para probar los distintos roles del sistema en el entorno de desarrollo:
 
 | Rol | Usuario / Email | Contraseña | Permisos |
 | --- | --- | --- | --- |
-| **Administrador** | `admin@empresa.com` | `Admin123!` | Solicitudes (CRUD) + Gestión de Usuarios |
-| **Operador** | `operador@empresa.com` | `Operator123!` | Solicitudes (CRUD) |
+| **Administrador** | `admin@empresa.com` | `admin123` | Solicitudes (CRUD) + Gestión de Usuarios |
+| **Operador** | `operador@empresa.com` | `operador123` | Solicitudes (CRUD) |
+
+---
+
+## 🗄️ Base de Datos y Prisma
+
+El esquema de datos está definido en `prisma/schema.prisma` y se usa **Prisma Client** (generado en `src/generated/prisma`).
+
+### Comandos útiles
+
+```bash
+# Generar cliente Prisma (tras cambios en schema.prisma)
+bunx prisma generate
+
+# Aplicar migraciones en desarrollo
+bunx prisma migrate dev
+
+# Solo crear/actualizar tablas (sin seed)
+bun run db:push
+
+# Solo cargar datos de desarrollo (idempotente)
+bun run db:seed
+
+# Setup completo (push + seed)
+bun run db:setup
+
+# Abrir Prisma Studio
+bunx prisma studio
+```
+
+### Datos de desarrollo
+- `prisma/seed.ts` carga 4 usuarios y 9 solicitudes (mismos datos que el modo mock del panel).
+- El seed es **idempotente**: se puede re-ejecutar sin duplicar datos.
+- Passwords hasheadas con bcrypt (`$2b$`); la API Go las verifica con `golang.org/x/crypto/bcrypt`.
 
 ---
 
 ## 🌐 Despliegue
 
-La aplicación se encuentra desplegada y lista para ser probada en producción:
+La aplicación está configurada para desplegarse en:
 
-* 🔗 **Aplicación Web:** [https://tecfin-solicitudes.vercel.app](https://tecfin-solicitudes.vercel.app)
-* 🔗 **API / Backend:** [https://api-tecfin-solicitudes.onrender.com](https://www.google.com/search?q=https://api-tecfin-solicitudes.onrender.com)
+* 🔗 **Aplicación Web (Frontend):** [Vercel](https://vercel.com) — `panel/`
+* 🔗 **API / Backend:** [Render](https://render.com) / [Fly.io](https://fly.io) — `api/`
+
+> Configura las variables de entorno en la plataforma de despliegue:
+> - `DATABASE_URL` (SQLite en volumen persistente o migra a PostgreSQL)
+> - `JWT_SECRET` (clave segura en producción)
+> - `ALLOWED_ORIGINS` (origen del frontend, ej. `https://tu-app.vercel.app`)
+> - `PORT` (la API escucha en `$PORT` o 8080 por defecto)
 
 ---
 
